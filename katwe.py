@@ -8,7 +8,7 @@ f = open("dictionary.txt", "rb").read().decode().split("\n")
 print(len(f))
 
 ans = []
-p = open("dictionary5.txt", "w")
+p = open("wordle-dictionary.txt", "w")
 
 for i in f:
     if len(i) == 5 and check(i):

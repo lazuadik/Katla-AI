@@ -94,7 +94,7 @@ def get_feedback(word, target, AIfeedback=[-1 for _ in range(5)]):
     return [feedback[i] for i in range(5)]
 
 def main():
-    words = [word.upper() for word in open("dictionary5.txt", "r").read().split("\n")]
+    words = [word.upper() for word in open("wordle-dictionary.txt", "r").read().split("\n")]
     trie = Trie(words)
     isDraw = False
     try:
