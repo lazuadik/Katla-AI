@@ -110,6 +110,9 @@ def main():
 
             while True:
                 user_input = input("Tebak kata: ").upper()
+                if len(user_input) != 5:
+                    print("Kata harus terdiri dari 5 huruf!")
+                    continue
                 if user_input not in words:
                     print("Kata tidak ada di KBBI!")
                     continue
@@ -117,8 +120,24 @@ def main():
 
             userfeedback = get_feedback(user_input, target, AIfeedback)
             guesser.feedback_processing(userfeedback, user_input)
-            print(guessed_word, AIfeedback)
-            print(user_input, get_feedback(user_input, target))
+            print(guessed_word, end=" => ")
+            for i in AIfeedback:
+                if i == 0:
+                    print("|  gray  ", end="")
+                elif i == 1:
+                    print("| yellow ", end="")
+                else:
+                    print("| green  ", end="")
+            print("|")
+            print(user_input, end=" => ")
+            for i in get_feedback(user_input, target):
+                if i == 0:
+                    print("|  gray  ", end="")
+                elif i == 1:
+                    print("| yellow ", end="")
+                else:
+                    print("| green  ", end="")
+            print("|")
             if (guessed_word == target and user_input == target):
                 isDraw = True
                 break
