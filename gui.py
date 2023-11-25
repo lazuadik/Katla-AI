@@ -61,23 +61,30 @@ class KatlaGame:
             self.finish_input()
 
     def select_letter(self, letter):
-        # Memilih huruf dan menambahkannya ke dalam kotak input
+    # Memilih huruf dan menambahkannya ke dalam kotak input
         if len(self.selected_letters) < 5:
             self.selected_letters.append(letter)
             self.update_entry_boxes()
-        else:
-            messagebox.showinfo("Info", "Anda sudah memilih 5 huruf.")
-        self.move_to_next_box()
+            if len(self.selected_letters) < 5:  # Pindah ke kotak berikutnya jika belum mencapai 5 huruf
+                self.move_to_next_box()
+            else:
+                messagebox.showinfo("Info", "Anda sudah memilih 5 huruf.")
+
 
     def delete_letter(self):
         # Menghapus huruf dari kotak input sebelumnya
+        if len(self.selected_letters) > 0:
+            self.selected_letters.pop()
+            self.update_entry_boxes()
+            self.move_to_previous_box()
+
+    def move_to_previous_box(self):
+        # Pindah ke kotak input sebelumnya
         if self.current_col > 0:
             self.current_col -= 1
         elif self.current_row > 0:
             self.current_row -= 1
             self.current_col = 4
-        if len(self.selected_letters) > 0:
-            self.selected_letters.pop()
         self.update_entry_boxes()
 
     def move_to_next_box(self):
@@ -100,15 +107,11 @@ class KatlaGame:
         for i in range(5):
             for j in range(5):
                 self.entry_boxes[i][j].config(state='normal')
-                if i == self.current_row and j == self.current_col:
-                    if len(self.selected_letters) > 0:
-                        self.entry_boxes[i][j].delete(0, 'end')
-                        self.entry_boxes[i][j].insert(0, self.selected_letters[-1])
-                else:
-                    self.entry_boxes[i][j].delete(0, 'end')
-                    if i == self.current_row and j == self.current_col - 1:
-                        self.entry_boxes[i][j].insert(0, self.selected_letters[-1])
+                self.entry_boxes[i][j].delete(0, 'end')
+                if j < len(self.selected_letters) and i == self.current_row:
+                    self.entry_boxes[i][j].insert(0, self.selected_letters[j])
                 self.entry_boxes[i][j].config(state='disabled')
+
 
 if __name__ == "__main__":
     root = tk.Tk()
