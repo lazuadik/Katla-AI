@@ -1,6 +1,7 @@
 class TrieNode:
     def __init__(self):
         self.children = {}
+        self.numOfLeaf = 0
 
 class Trie:
     def __init__(self, words):
@@ -11,6 +12,7 @@ class Trie:
         for word in words:
             node = self.root
             for char in word:
+                node.numOfLeaf += 1
                 if char not in node.children:
                     node.children[char] = TrieNode()
                 node = node.children[char]
@@ -21,13 +23,13 @@ class Trie:
             if path[i] not in node.children:
                 return None
             node = node.children[path[i]]
-        return node
-        
-    def count_child(self, path, char):
+        return node    
+
+    def count_leaf(self, path, char):
         pos = self.search_node(path)
         if pos == None:
             return 0
         if char not in pos.children:
             return 0
         pos = pos.children[char]
-        return len(pos.children)
+        return pos.numOfLeaf
