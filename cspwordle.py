@@ -32,6 +32,12 @@ class CSPWordle:
         else:
             return True
 
+    def domainCombinations(self, var):
+        res = len(self.domains[var])
+        for i in range(var+1, 5):
+            res *= len(self.domains[i])
+        return res
+
     def update_domain(self, note):
         dup_yellow = []
         for i in range(5):

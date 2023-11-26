@@ -9,7 +9,8 @@ class WordleGuesser:
         self.firstStep = True
 
     def lcv(self, var, assignment):
-        return sorted(self.csp.choices(var), key=lambda val: self.csp.trie.count_leaf(assignment, val), reverse=True)
+        comb = self.csp.domainCombinations(var)
+        return sorted(self.csp.choices(var), key=lambda val: comb - self.csp.trie.count_leaf(assignment, val))
     
     def forward_checking(self, var, value, assignmentPos, removals):
         if var == 4:
