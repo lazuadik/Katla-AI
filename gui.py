@@ -1,119 +1,129 @@
-import tkinter as tk
 from tkinter import messagebox
+import tkinter as tk
+from solver import *
 
-class KatlaGame:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Katla Game")
+root = tk.Tk()
+root.title('Wordle')
+frame = tk.Frame(root)
+frame.pack()
 
-        # Inisialisasi array untuk menyimpan huruf yang dipilih
-        self.selected_letters = []
+# Variabel GUI
+green = '#27e512'
+yellow = '#e8ef0e'
+gray = '#4c4c4c'
+font = 'Verdana, 38'
+letters = []
+letter_count = 0
+guess = ''
+words = []
+winner = False
+wordleGuesser = None
 
-        # Inisialisasi posisi saat ini di dalam kotak input
-        self.current_row = 0
-        self.current_col = 0
+with open('wordle-dictionary.txt', 'r') as file:
+    data = file.readlines()
+    for i in data:
+        words.append(i[:-1])
 
-        # Membuat kotak input 5x5
-        self.entry_boxes = [[None] * 5 for _ in range(5)]
-        for i in range(5):
-            for j in range(5):
-                entry = tk.Entry(root, width=4, font=('Helvetica', 14), justify='center', state='disabled')
-                entry.grid(row=i, column=j, padx=5, pady=5)
-                self.entry_boxes[i][j] = entry
+def start_new_game():
+    global letter_count, guess, winner, wordleGuesser
+    layout()
+    letter_count = 0
+    guess = ''
+    winner = False
+    wordleGuesser = WordleGuesser(trie)
 
-        # Membuat keyboard
-        keyboard_frame = tk.Frame(root)
-        keyboard_frame.grid(row=6, column=0, columnspan=5)
-        self.create_keyboard(keyboard_frame)
-
-        # Mengaitkan fungsi `key_pressed` dengan tombol keyboard
-        self.root.bind('<Key>', self.key_pressed)
-
-    def create_keyboard(self, frame):
-        # Daftar huruf yang mungkin dipilih
-        letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-        # Susunan keyboard laptop
-        laptop_layout = [
-            'QWERTYUIOP',
-            'ASDFGHJKL',
-            'ZXCVBNM'
-        ]
-
-        # Membuat tombol keyboard
-        row, col = 0, 0
-        for row_layout in laptop_layout:
-            for letter in row_layout:
-                button = tk.Button(frame, text=letter, width=4, height=2, command=lambda l=letter: self.select_letter(l))
-                button.grid(row=row, column=col, padx=5, pady=5)
-                col += 1
-            col = 0
-            row += 1
-
-    def key_pressed(self, event):
-        # Memeriksa apakah tombol yang ditekan adalah huruf
+def key_pressed(event):
+    global letter_count, guess, winner
+    if not winner:
         if event.char.isalpha():
-            letter = event.char.upper()
-            self.select_letter(letter)
-        elif event.keysym == 'BackSpace':
-            self.delete_letter()
-        elif event.keysym == 'Return':
-            self.finish_input()
+            if letter_count <= 29:
+                letters[letter_count]['text'] = event.char.upper()
+                letters[letter_count].focus()
+                guess = guess + event.char.upper()
+                letter_count += 1
+                if letter_count % 5 == 0:
+                    user_input = ''.join(letters[i]['text'] for i in range(letter_count - 5, letter_count))
+                    AIfeedback = get_feedback(guess, target)
+                    wordleGuesser.feedback_processing(AIfeedback, guess)
 
-    def select_letter(self, letter):
-    # Memilih huruf dan menambahkannya ke dalam kotak input
-        if len(self.selected_letters) < 5:
-            self.selected_letters.append(letter)
-            self.update_entry_boxes()
-            if len(self.selected_letters) < 5:  # Pindah ke kotak berikutnya jika belum mencapai 5 huruf
-                self.move_to_next_box()
+                    userfeedback = get_feedback(user_input, target, AIfeedback)
+                    wordleGuesser.feedback_processing(userfeedback, user_input)
+
+                    check_word(guess)
+                    guess = ''
+                    if winner:
+                        win_lose(winner)
+
+            if letter_count == 30:
+                win_lose(winner)
+
+def check_word(guess):
+    global winner
+    btn_index = letter_count - 5
+    
+    for i, letter in enumerate(guess):
+        if letter == target[i]:
+            letters[btn_index + i]['bg'] = green
+            letters[btn_index + i]['activebackground'] = green
+        elif letter in target:
+            if guess.count(letter) >= 1 and guess.count(letter) == target.count(letter):
+                letters[btn_index + i]['bg'] = yellow
+                letters[btn_index + i]['activebackground'] = yellow
             else:
-                messagebox.showinfo("Info", "Anda sudah memilih 5 huruf.")
+                letters[btn_index + i]['bg'] = gray
+                letters[btn_index + i]['activebackground'] = gray
+        else:
+            letters[btn_index + i]['bg'] = gray
+            letters[btn_index + i]['activebackground'] = gray
+            
+    if guess == target:
+        winner = True
+        win_lose(winner)
 
+def win_lose(winner):
+    if not winner:
+        title = 'Anda kalah'
+        message = f'Jawaban: {target} \n Lihat di KBBI https://kbbi.kemdikbud.go.id/entri/siput'
+    else:
+        title = 'Gacor kang'
+        message = 'Well done, you got it in {} guess(s)'.format(int(letter_count / 5))
+    play_again = messagebox.askquestion(title=title, message=f'{message}.\nMain lagi?')
 
-    def delete_letter(self):
-        # Menghapus huruf dari kotak input sebelumnya
-        if len(self.selected_letters) > 0:
-            self.selected_letters.pop()
-            self.update_entry_boxes()
-            self.move_to_previous_box()
+    if play_again == 'yes':
+        start_new_game()
+    else:
+        root.destroy()
 
-    def move_to_previous_box(self):
-        # Pindah ke kotak input sebelumnya
-        if self.current_col > 0:
-            self.current_col -= 1
-        elif self.current_row > 0:
-            self.current_row -= 1
-            self.current_col = 4
-        self.update_entry_boxes()
+def go_again():
+    for i in range(5):
+        letters[letter_count + i]['text'] = ' '
 
-    def move_to_next_box(self):
-        # Pindah ke kotak input berikutnya
-        if self.current_col < 4:
-            self.current_col += 1
-        elif self.current_row < 4:
-            self.current_row += 1
-            self.current_col = 0
+def layout():
+    global frame, letter_count, winner, guess, target
+    frame.destroy()
+    frame = tk.Frame(root)
+    frame.pack()
+    letters.clear()
+    letter_count = 0
+    winner = False
+    guess = ''
+    target = random.choice(words).upper()
 
-    def finish_input(self):
-        # Menyelesaikan input dan membersihkan kotak input
-        self.selected_letters = []
-        self.current_row = 0
-        self.current_col = 0
-        self.update_entry_boxes()
+    for row in range(6):
+        for col in range(5):
+            btn = tk.Button(frame, text=' ', width=1, bg='white',
+                            activebackground='white', font=font)
+            btn.grid(row=row, column=col, padx=3, pady=5)
+            letters.append(btn)
 
-    def update_entry_boxes(self):
-        # Mengisi kotak input dengan huruf yang dipilih
-        for i in range(5):
-            for j in range(5):
-                self.entry_boxes[i][j].config(state='normal')
-                self.entry_boxes[i][j].delete(0, 'end')
-                if j < len(self.selected_letters) and i == self.current_row:
-                    self.entry_boxes[i][j].insert(0, self.selected_letters[j])
-                self.entry_boxes[i][j].config(state='disabled')
+    menu = tk.Menu(root)
+    root.config(menu=menu)
+    new_game = tk.Menu(menu)
+    menu.add_command(label='New Game', command=start_new_game)
 
+# Menghubungkan dengan trie
+trie = Trie(words)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    game = KatlaGame(root)
-    root.mainloop()
+root.bind('<Key>', key_pressed)
+layout()
+root.mainloop()
