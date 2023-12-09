@@ -34,7 +34,11 @@ class WordleGuesser:
         if len(assignment) == 5:
             return ''.join(assignment[i] for i in range(5)) if self.csp.yellow_state_constraints(assignment) else None
         var = len(assignment)
-        for value in self.lcv(var, assignment):
+        if var < 3:
+            dom = self.lcv(var, assignment)
+        else:
+            dom = sorted(self.csp.choices(var))
+        for value in dom:
             assignment[var] = value
             removals = []
             if self.forward_checking(var, value, assignmentPos, removals):
