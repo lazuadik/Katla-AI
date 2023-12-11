@@ -59,8 +59,9 @@ class WordleGuesser:
         random.shuffle(dom)
         for value in dom:
             assignment[var] = value
+            p = [assignment[x] for x in range(var)]
             removals = []
-            if value not in assignment:
+            if value not in p:
                 if self.forward_checking(var, value, assignmentPos, removals):
                     result = self.first_step_function(assignment, assignmentPos.children[value])
                     if result is not None:
@@ -91,7 +92,8 @@ def get_feedback(word, target, AIfeedback=[-1 for _ in range(5)]):
 
     for i in res:
         for j in temp:
-            if word[i] == target[j] and feedback[j] != 2 and AIfeedback[j] != 2:
+            # if word[i] == target[j] and feedback[j] != 2 and AIfeedback[j] != 2:
+            if word[i] == target[j] and feedback[j] != 2:
                 feedback[i] = 1
                 temp.remove(j)
                 break
